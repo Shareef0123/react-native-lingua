@@ -1,0 +1,84 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  /* Brand Fonts */
+  --font-poppins: "Poppins-Regular", sans-serif;
+  --font-poppins-medium: "Poppins-Medium", sans-serif;
+  --font-poppins-semibold: "Poppins-SemiBold", sans-serif;
+  --font-poppins-bold: "Poppins-Bold", sans-serif;
+
+  /* Primary Colors */
+  --color-lingua-purple: #6C4EF5;
+  --color-lingua-deep-purple: #5B3BF6;
+  --color-lingua-blue: #4D8BFF;
+  --color-lingua-green: #21C16B;
+
+  /* Semantic Colors */
+  --color-success: #21C16B;
+  --color-warning: #FFC800;
+  --color-streak: #FF8A00;
+  --color-error: #FF4D4F;
+  --color-info: #4D8BFF;
+
+  /* Neutral Colors */
+  --color-text-primary: #0D132B;
+  --color-text-secondary: #6B7280;
+  --color-border: #E5E7EB;
+  --color-surface: #F6F7FB;
+  --color-background: #FFFFFF;
+}
+
+@layer utilities {
+  .h1 {
+    font-family: var(--font-poppins-bold);
+    font-size: 32px;
+    line-height: 38.4px;
+    font-weight: 700;
+  }
+  .h2 {
+    font-family: var(--font-poppins-semibold);
+    font-size: 24px;
+    line-height: 31.2px;
+    font-weight: 600;
+  }
+  .h3 {
+    font-family: var(--font-poppins-semibold);
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 600;
+  }
+  .h4 {
+    font-family: var(--font-poppins-medium);
+    font-size: 16px;
+    line-height: 22.4px;
+    font-weight: 500;
+  }
+  .body-lg {
+    font-family: var(--font-poppins);
+    font-size: 16px;
+    line-height: 25.6px;
+    font-weight: 400;
+  }
+  .body-md {
+    font-family: var(--font-poppins);
+    font-size: 14px;
+    line-height: 22.4px;
+    font-weight: 400;
+  }
+  .body-sm {
+    font-family: var(--font-poppins);
+    font-size: 13px;
+    line-height: 20.8px;
+    font-weight: 400;
+  }
+  .caption {
+    font-family: var(--font-poppins);
+    font-size: 11px;
+    line-height: 15.4px;
+    font-weight: 400;
+  }
+}

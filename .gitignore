@@ -31,6 +31,8 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env*
 .env*.local
 
 # typescript
@@ -44,4 +46,3 @@ example
 
 # temp & nested apps
 my-expo-app/
-

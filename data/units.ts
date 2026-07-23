@@ -20,17 +20,7 @@ export const UNITS: Unit[] = [
     description: 'Navigate city streets, ask for directions, and check into hotels.',
     color: '#1CB0F6',
     icon: 'compass',
-    totalLessons: 2,
-  },
-  {
-    id: 'es-unit-3',
-    languageId: 'es',
-    order: 3,
-    title: 'Food & Dining',
-    description: 'Order food at restaurants, talk about ingredients and preferences.',
-    color: '#FF9600',
-    icon: 'restaurant',
-    totalLessons: 2,
+    totalLessons: 1,
   },
 
   // French Units
@@ -44,15 +34,29 @@ export const UNITS: Unit[] = [
     icon: 'hand-wave',
     totalLessons: 2,
   },
+
+  // Japanese Units
   {
-    id: 'fr-unit-2',
-    languageId: 'fr',
-    order: 2,
-    title: 'Café Culture',
-    description: 'Order food, coffee, and converse politely at French cafés.',
-    color: '#CE82FF',
-    icon: 'cafe',
-    totalLessons: 2,
+    id: 'ja-unit-1',
+    languageId: 'ja',
+    order: 1,
+    title: 'Greetings & Expressions',
+    description: 'Say hello, express gratitude, and learn basic Japanese greetings.',
+    color: '#FF4B4B',
+    icon: 'sparkles',
+    totalLessons: 1,
+  },
+
+  // Korean Units
+  {
+    id: 'kr-unit-1',
+    languageId: 'kr',
+    order: 1,
+    title: 'Hangul & Greetings',
+    description: 'Learn basic Korean greetings and essential phrases.',
+    color: '#FF4B4B',
+    icon: 'hand-wave',
+    totalLessons: 1,
   },
 
   // German Units
@@ -64,38 +68,18 @@ export const UNITS: Unit[] = [
     description: 'Say hello, introduce yourself, and ask simple everyday questions.',
     color: '#FFC800',
     icon: 'hand-wave',
-    totalLessons: 2,
-  },
-  {
-    id: 'de-unit-2',
-    languageId: 'de',
-    order: 2,
-    title: 'Daily Life',
-    description: 'Talk about your routine, hobbies, and simple daily activities.',
-    color: '#58CC02',
-    icon: 'sun',
     totalLessons: 1,
   },
 
-  // Japanese Units
+  // Chinese Units
   {
-    id: 'ja-unit-1',
-    languageId: 'ja',
+    id: 'zh-unit-1',
+    languageId: 'zh',
     order: 1,
-    title: 'Greetings & Expressions',
-    description: 'Say hello, express gratitude, and learn basic Japanese greetings.',
-    color: '#FF4B4B',
-    icon: 'sparkles',
-    totalLessons: 2,
-  },
-  {
-    id: 'ja-unit-2',
-    languageId: 'ja',
-    order: 2,
-    title: 'Essential Phrases',
-    description: 'Learn polite responses, travel phrases, and daily vocabulary.',
-    color: '#1CB0F6',
-    icon: 'chat-bubble',
+    title: 'Pinyin & Greetings',
+    description: 'Learn fundamental Mandarin greetings and essential expressions.',
+    color: '#FF0000',
+    icon: 'hand-wave',
     totalLessons: 1,
   },
 
@@ -108,7 +92,7 @@ export const UNITS: Unit[] = [
     description: 'Learn Italian greetings and key phrases for daily life.',
     color: '#2B70C9',
     icon: 'hand-wave',
-    totalLessons: 2,
+    totalLessons: 1,
   },
 ];
 

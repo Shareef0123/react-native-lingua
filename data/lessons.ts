@@ -392,6 +392,102 @@ export const LESSONS: Lesson[] = [
     ],
   },
 
+  // Japanese Unit 1 Lessons
+  {
+    id: 'ja-lesson-1',
+    unitId: 'ja-unit-1',
+    languageId: 'ja',
+    order: 1,
+    title: 'Konnichiwa & Basics',
+    description: 'Learn fundamental Japanese greetings and polite phrases.',
+    type: 'standard',
+    xpReward: 15,
+    estimatedMinutes: 3,
+    goals: ['Learn Konnichiwa and Arigatou', 'Understand basic Japanese etiquette'],
+    vocabulary: [
+      {
+        id: 'vocab-ja-1',
+        word: 'こんにちは (Konnichiwa)',
+        translation: 'Hello / Good afternoon',
+        phonetic: 'kohn-nee-chee-wah',
+      },
+      {
+        id: 'vocab-ja-2',
+        word: 'ありがとう (Arigatou)',
+        translation: 'Thank you',
+        phonetic: 'ah-ree-gah-too',
+      },
+    ],
+    phrases: [
+      {
+        id: 'phrase-ja-1',
+        phrase: 'はじめまして (Hajimemashite)',
+        translation: 'Nice to meet you',
+      },
+    ],
+    activities: [
+      {
+        id: 'act-ja-1-1',
+        type: 'multiple-choice',
+        prompt: 'Select the Japanese greeting for "Hello"',
+        options: [
+          { id: 'opt-ja-1', text: 'こんにちは (Konnichiwa)', isCorrect: true },
+          { id: 'opt-ja-2', text: 'ありがとう (Arigatou)', isCorrect: false },
+          { id: 'opt-ja-3', text: 'さようなら (Sayounara)', isCorrect: false },
+        ],
+        correctAnswer: 'こんにちは (Konnichiwa)',
+      },
+    ],
+  },
+
+  // Korean Unit 1 Lessons
+  {
+    id: 'kr-lesson-1',
+    unitId: 'kr-unit-1',
+    languageId: 'kr',
+    order: 1,
+    title: 'Annyeong & Basics',
+    description: 'Learn basic Korean greetings and essential polite expressions.',
+    type: 'standard',
+    xpReward: 15,
+    estimatedMinutes: 3,
+    goals: ['Say hello and thank you in Korean', 'Recognize basic Korean greetings'],
+    vocabulary: [
+      {
+        id: 'vocab-kr-1',
+        word: '안녕하세요 (Annyeonghaseyo)',
+        translation: 'Hello',
+        phonetic: 'ahn-nyung-ha-seh-yo',
+      },
+      {
+        id: 'vocab-kr-2',
+        word: '감사합니다 (Gamsahamnida)',
+        translation: 'Thank you',
+        phonetic: 'gahm-sah-hahm-nee-dah',
+      },
+    ],
+    phrases: [
+      {
+        id: 'phrase-kr-1',
+        phrase: '만나서 반가워요 (Mannaseo bangawoyo)',
+        translation: 'Nice to meet you',
+      },
+    ],
+    activities: [
+      {
+        id: 'act-kr-1-1',
+        type: 'multiple-choice',
+        prompt: 'Select the Korean word for "Hello"',
+        options: [
+          { id: 'opt-kr-1', text: '안녕하세요 (Annyeonghaseyo)', isCorrect: true },
+          { id: 'opt-kr-2', text: '감사합니다 (Gamsahamnida)', isCorrect: false },
+          { id: 'opt-kr-3', text: '안녕히 계세요 (Annyeonghi gyeseyo)', isCorrect: false },
+        ],
+        correctAnswer: '안녕하세요 (Annyeonghaseyo)',
+      },
+    ],
+  },
+
   // German Unit 1 Lessons
   {
     id: 'de-lesson-1',
@@ -446,50 +542,50 @@ export const LESSONS: Lesson[] = [
     ],
   },
 
-  // Japanese Unit 1 Lessons
+  // Chinese Unit 1 Lessons
   {
-    id: 'ja-lesson-1',
-    unitId: 'ja-unit-1',
-    languageId: 'ja',
+    id: 'zh-lesson-1',
+    unitId: 'zh-unit-1',
+    languageId: 'zh',
     order: 1,
-    title: 'Konnichiwa & Basics',
-    description: 'Learn fundamental Japanese greetings and polite phrases.',
+    title: 'Nǐ Hǎo & Basics',
+    description: 'Master basic Chinese greetings and polite words.',
     type: 'standard',
     xpReward: 15,
     estimatedMinutes: 3,
-    goals: ['Learn Konnichiwa and Arigatou', 'Understand basic Japanese etiquette'],
+    goals: ['Say Nǐ hǎo and Xièxie in Mandarin', 'Learn basic courtesy words'],
     vocabulary: [
       {
-        id: 'vocab-ja-1',
-        word: 'こんにちは (Konnichiwa)',
-        translation: 'Hello / Good afternoon',
-        phonetic: 'kohn-nee-chee-wah',
+        id: 'vocab-zh-1',
+        word: '你好 (Nǐ hǎo)',
+        translation: 'Hello',
+        phonetic: 'nee how',
       },
       {
-        id: 'vocab-ja-2',
-        word: 'ありがとう (Arigatou)',
+        id: 'vocab-zh-2',
+        word: '谢谢 (Xièxie)',
         translation: 'Thank you',
-        phonetic: 'ah-ree-gah-too',
+        phonetic: 'hsee-eh hsee-eh',
       },
     ],
     phrases: [
       {
-        id: 'phrase-ja-1',
-        phrase: 'はじめまして (Hajimemashite)',
+        id: 'phrase-zh-1',
+        phrase: '很高兴认识你 (Hěn gāoxìng rènshí nǐ)',
         translation: 'Nice to meet you',
       },
     ],
     activities: [
       {
-        id: 'act-ja-1-1',
+        id: 'act-zh-1-1',
         type: 'multiple-choice',
-        prompt: 'Select the Japanese greeting for "Hello"',
+        prompt: 'Select the Mandarin word for "Hello"',
         options: [
-          { id: 'opt-ja-1', text: 'こんにちは (Konnichiwa)', isCorrect: true },
-          { id: 'opt-ja-2', text: 'ありがとう (Arigatou)', isCorrect: false },
-          { id: 'opt-ja-3', text: 'さようなら (Sayounara)', isCorrect: false },
+          { id: 'opt-zh-1', text: '你好 (Nǐ hǎo)', isCorrect: true },
+          { id: 'opt-zh-2', text: '谢谢 (Xièxie)', isCorrect: false },
+          { id: 'opt-zh-3', text: '再见 (Zàijiàn)', isCorrect: false },
         ],
-        correctAnswer: 'こんにちは (Konnichiwa)',
+        correctAnswer: '你好 (Nǐ hǎo)',
       },
     ],
   },

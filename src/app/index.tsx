@@ -1,8 +1,15 @@
-import { Text, View, TouchableOpacity } from "react-native";
-import { Link } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
+import { Link, Redirect } from "expo-router";
+import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (isLoaded && isSignedIn) {
+    return <Redirect href="/home" />;
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <View className="flex-1 items-center justify-center bg-white px-6">
@@ -27,6 +34,15 @@ export default function Index() {
           >
             <Text className="font-poppins-semibold text-white text-base">
               Open Onboarding Screen
+            </Text>
+          </TouchableOpacity>
+        </Link>
+
+        {/* Link to the language selection screen */}
+        <Link href="/language-selection" asChild>
+          <TouchableOpacity activeOpacity={0.7} className="mt-4 px-8 py-3">
+            <Text className="font-poppins-semibold text-[#5B3BF6] text-base">
+              Choose a language
             </Text>
           </TouchableOpacity>
         </Link>

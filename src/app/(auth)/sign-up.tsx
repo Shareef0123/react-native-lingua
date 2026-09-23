@@ -1,9 +1,12 @@
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 import VerificationModal from "@/components/VerificationModal";
 import { images } from "@/constants/images";
+import { useSignUp } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -17,21 +20,51 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { signUp, setActive, isLoaded } = useSignUp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
-
+  const [submitting, setSubmitting] = useState(false);
   const [verificationModalVisible, setVerificationModalVisible] =
     useState(false);
 
-  const handleSignUp = () => {
-    setVerificationModalVisible(true);
+  // Create the account and send the email verification code.
+  const startSignUp = async () => {
+    if (!isLoaded || submitting) return;
+    if (!email.trim()) {
+      Alert.alert("Email required", "Please enter your email address.");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      await signUp.create({
+        emailAddress: email.trim(),
+        password: password ? password : undefined,
+      });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setVerificationModalVisible(true);
+    } catch (err) {
+      Alert.alert(
+        "Could not sign up",
+        err instanceof Error ? err.message : "Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleSocialAuth = () => {
-    setVerificationModalVisible(true);
+  const handleVerify = async (code: string) => {
+    if (!isLoaded) throw new Error("Auth not ready. Please try again.");
+    const result = await signUp.attemptEmailAddressVerification({ code });
+    if (result.status === "complete") {
+      await setActive({ session: result.createdSessionId });
+      setVerificationModalVisible(false);
+      router.replace("/home");
+    } else {
+      throw new Error("Verification incomplete. Please try again.");
+    }
   };
 
   return (
@@ -154,7 +187,8 @@ export default function SignUpScreen() {
 
               {/* Main Sign Up Button */}
               <TouchableOpacity
-                onPress={handleSignUp}
+                onPress={startSignUp}
+                disabled={submitting}
                 activeOpacity={0.85}
                 className="bg-[#5B3BF6] rounded-[22px] py-4 items-center justify-center mt-5"
                 style={{
@@ -163,10 +197,11 @@ export default function SignUpScreen() {
                   shadowOpacity: 0.25,
                   shadowRadius: 8,
                   elevation: 4,
+                  opacity: submitting ? 0.7 : 1,
                 }}
               >
                 <Text className="font-poppins-semibold text-[17px] text-white">
-                  Sign Up
+                  {submitting ? "Creating account…" : "Sign Up"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -181,55 +216,7 @@ export default function SignUpScreen() {
             </View>
 
             {/* Social Auth Buttons */}
-            <View className="space-y-3 mb-4">
-              {/* Google */}
-              <TouchableOpacity
-                onPress={handleSocialAuth}
-                activeOpacity={0.8}
-                className="border border-[#E5E7EB] rounded-[20px] py-3.5 px-4 flex-row items-center justify-center bg-white"
-              >
-                <Image
-                  source={images.googleIcon}
-                  style={{ width: 20, height: 20, position: "absolute", left: 20 }}
-                  resizeMode="contain"
-                />
-                <Text className="font-poppins-semibold text-[15px] text-[#0D132B]">
-                  Continue with Google
-                </Text>
-              </TouchableOpacity>
-
-              {/* Facebook */}
-              <TouchableOpacity
-                onPress={handleSocialAuth}
-                activeOpacity={0.8}
-                className="border border-[#E5E7EB] rounded-[20px] py-3.5 px-4 flex-row items-center justify-center bg-white mt-2.5"
-              >
-                <Image
-                  source={images.facebookIcon}
-                  style={{ width: 20, height: 20, position: "absolute", left: 20 }}
-                  resizeMode="contain"
-                />
-                <Text className="font-poppins-semibold text-[15px] text-[#0D132B]">
-                  Continue with Facebook
-                </Text>
-              </TouchableOpacity>
-
-              {/* Apple */}
-              <TouchableOpacity
-                onPress={handleSocialAuth}
-                activeOpacity={0.8}
-                className="border border-[#E5E7EB] rounded-[20px] py-3.5 px-4 flex-row items-center justify-center bg-white mt-2.5"
-              >
-                <Image
-                  source={images.appleIcon}
-                  style={{ width: 20, height: 20, position: "absolute", left: 20 }}
-                  resizeMode="contain"
-                />
-                <Text className="font-poppins-semibold text-[15px] text-[#0D132B]">
-                  Continue with Apple
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <SocialAuthButtons />
 
             {/* Bottom Navigation Link */}
             <View className="flex-row items-center justify-center pt-2">
@@ -254,6 +241,8 @@ export default function SignUpScreen() {
         visible={verificationModalVisible}
         onClose={() => setVerificationModalVisible(false)}
         email={email}
+        onVerify={handleVerify}
+        onResend={startSignUp}
       />
     </SafeAreaView>
   );

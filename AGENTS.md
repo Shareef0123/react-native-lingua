@@ -26,16 +26,21 @@ This is primarily a learning project. The goal is to teach developers how to bui
 
 ## Tech Stack
 
-Use the following stack:
+Use the following stack.
 
-- Expo
-- React Native
-- TypeScript
-- Expo Router
-- NativeWind / Tailwind CSS
-- Zustand
-- AsyncStorage
-- Clerk for authentication
+**Installed and in use now** (safe to assume available):
+
+- Expo (SDK 57) + React Native (0.86)
+- TypeScript (strict)
+- Expo Router (typed routes)
+- NativeWind / Tailwind CSS — NativeWind **v5** (`^5.0.0-preview.4`)
+- Reanimated, expo-image, expo-font, expo-glass-effect
+
+**Planned but NOT yet installed** — do not assume these exist. Recommend them and
+ask before running `npx expo install`:
+
+- Zustand (global state) + AsyncStorage (persistence)
+- Clerk for authentication (do not build custom auth)
 - Stream / GetStream for video and real-time communication
 - Stream Vision Agents for AI video teacher capability
 - Server-side API routes or backend functions for secrets, tokens, and AI calls
@@ -83,26 +88,37 @@ Do not install or use new libraries without user approval.
 
 ## Architecture Guidelines
 
-Use this structure unless there is a strong reason to change it:
+Use this structure unless there is a strong reason to change it.
+
+**Actual structure in this repo today:**
 
 ```txt
-app/
+src/app/            # Expo Router routes ONLY (index, onboarding, (auth)/…)
   (auth)/
-  (tabs)/
-  lesson/
-components/
-constants/
-data/
-hooks/
-lib/
-store/
-types/
-assets/
+components/         # reusable UI, PascalCase files (e.g. VerificationModal.tsx)
+constants/          # centralized non-UI constants — constants/images.ts
+data/               # typed hardcoded content: languages.ts, units.ts, lessons.ts
+types/              # shared types — e.g. learning.ts (data/ imports from here)
+theme/              # colors.ts, typography.ts, index.ts
+global.css          # NativeWind/Tailwind base + BEM utility classes
+assets/             # images + Poppins fonts
 ```
 
-### app/
+Folders to add **when a feature first needs them** (not before):
 
-Use this for routes and screens only.
+```txt
+hooks/   # reusable hooks
+store/   # Zustand stores (Zustand not yet installed)
+lib/     # external service helpers: clerk.ts, stream.ts, api.ts, cn.ts
+```
+
+The `@/*` alias resolves to both `./src/*` and `./*` (see `tsconfig.json`), so
+`@/constants/images`, `@/theme`, and `@/assets/*` all work. Routes live under
+`src/app` (not a root-level `app/`).
+
+### src/app/
+
+Use this for routes and screens only. Every file here is a route.
 
 Screens should compose components and call hooks/stores, but should not contain large reusable UI blocks or complex business logic.
 

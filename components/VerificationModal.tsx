@@ -1,6 +1,6 @@
-import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -17,37 +17,61 @@ interface VerificationModalProps {
   visible: boolean;
   onClose: () => void;
   email?: string;
+  // Verify the 6-digit code. Throw (or reject) to show an error; the caller
+  // handles navigation on success.
+  onVerify: (code: string) => Promise<void>;
+  onResend?: () => void;
 }
 
 export default function VerificationModal({
   visible,
   onClose,
   email,
+  onVerify,
+  onResend,
 }: VerificationModalProps) {
-  const router = useRouter();
   const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    if (visible) {
-      const timer = setTimeout(() => {
-        setCode("");
-        inputRef.current?.focus();
-      }, 50);
-      return () => clearTimeout(timer);
-    }
+    if (!visible) return;
+    const timer = setTimeout(() => {
+      setError(null);
+      setCode("");
+      inputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timer);
   }, [visible]);
 
+  const submit = async (value: string) => {
+    Keyboard.dismiss();
+    setLoading(true);
+    setError(null);
+    try {
+      await onVerify(value);
+      // On success the caller navigates away; nothing else to do here.
+    } catch (e) {
+      setCode("");
+      setError(
+        e instanceof Error && e.message
+          ? e.message
+          : "Invalid or expired code. Please try again."
+      );
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCodeChange = (text: string) => {
+    if (loading) return;
     const numericText = text.replace(/[^0-9]/g, "").slice(0, 6);
     setCode(numericText);
-
+    if (error) setError(null);
     if (numericText.length === 6) {
-      Keyboard.dismiss();
-      setTimeout(() => {
-        onClose();
-        router.replace("/");
-      }, 200);
+      void submit(numericText);
     }
   };
 
@@ -118,7 +142,7 @@ export default function VerificationModal({
             <TouchableOpacity
               activeOpacity={1}
               onPress={() => inputRef.current?.focus()}
-              className="relative py-2 mb-4"
+              className="relative py-2 mb-2"
             >
               <TextInput
                 ref={inputRef}
@@ -126,6 +150,7 @@ export default function VerificationModal({
                 onChangeText={handleCodeChange}
                 keyboardType="number-pad"
                 maxLength={6}
+                editable={!loading}
                 style={{
                   position: "absolute",
                   width: "100%",
@@ -163,9 +188,29 @@ export default function VerificationModal({
               </View>
             </TouchableOpacity>
 
+            {/* Loading / Error state */}
+            {loading ? (
+              <View className="flex-row items-center justify-center mt-2">
+                <ActivityIndicator color="#5B3BF6" />
+                <Text className="font-poppins text-[13px] text-[#6B7280] ml-2">
+                  Verifying…
+                </Text>
+              </View>
+            ) : error ? (
+              <Text className="font-poppins-medium text-[13px] text-[#EF4444] text-center mt-2">
+                {error}
+              </Text>
+            ) : null}
+
             {/* Footer / Resend prompt */}
-            <View className="items-center mt-2">
-              <TouchableOpacity onPress={() => inputRef.current?.focus()}>
+            <View className="items-center mt-3">
+              <TouchableOpacity
+                disabled={loading}
+                onPress={() => {
+                  if (onResend) onResend();
+                  inputRef.current?.focus();
+                }}
+              >
                 <Text className="font-poppins-medium text-[14px] text-[#5B3BF6]">
                   Didn&apos;t receive code? Resend
                 </Text>

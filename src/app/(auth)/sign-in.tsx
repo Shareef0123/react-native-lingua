@@ -1,9 +1,12 @@
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 import VerificationModal from "@/components/VerificationModal";
 import { images } from "@/constants/images";
+import { useSignIn } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -17,18 +20,57 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { signIn, setActive, isLoaded } = useSignIn();
   const [email, setEmail] = useState("");
   const [isEmailFocused, setIsEmailFocused] = useState(false);
-
+  const [submitting, setSubmitting] = useState(false);
   const [verificationModalVisible, setVerificationModalVisible] =
     useState(false);
 
-  const handleSignIn = () => {
-    setVerificationModalVisible(true);
+  // Send a 6-digit email code, then open the verification modal.
+  const startEmailCode = async () => {
+    if (!isLoaded || submitting) return;
+    if (!email.trim()) {
+      Alert.alert("Email required", "Please enter your email address.");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const attempt = await signIn.create({ identifier: email.trim() });
+      const emailFactor = attempt.supportedFirstFactors?.find(
+        (f) => f.strategy === "email_code"
+      );
+      if (!emailFactor || !("emailAddressId" in emailFactor)) {
+        throw new Error("Email code sign-in is not enabled for this account.");
+      }
+      await signIn.prepareFirstFactor({
+        strategy: "email_code",
+        emailAddressId: emailFactor.emailAddressId,
+      });
+      setVerificationModalVisible(true);
+    } catch (err) {
+      Alert.alert(
+        "Could not sign in",
+        err instanceof Error ? err.message : "Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleSocialAuth = () => {
-    setVerificationModalVisible(true);
+  const handleVerify = async (code: string) => {
+    if (!isLoaded) throw new Error("Auth not ready. Please try again.");
+    const result = await signIn.attemptFirstFactor({
+      strategy: "email_code",
+      code,
+    });
+    if (result.status === "complete") {
+      await setActive({ session: result.createdSessionId });
+      setVerificationModalVisible(false);
+      router.replace("/home");
+    } else {
+      throw new Error("Verification incomplete. Please try again.");
+    }
   };
 
   return (
@@ -109,7 +151,8 @@ export default function SignInScreen() {
 
               {/* Main Sign In Button */}
               <TouchableOpacity
-                onPress={handleSignIn}
+                onPress={startEmailCode}
+                disabled={submitting}
                 activeOpacity={0.85}
                 className="bg-[#5B3BF6] rounded-[22px] py-4 items-center justify-center mt-5"
                 style={{
@@ -118,10 +161,11 @@ export default function SignInScreen() {
                   shadowOpacity: 0.25,
                   shadowRadius: 8,
                   elevation: 4,
+                  opacity: submitting ? 0.7 : 1,
                 }}
               >
                 <Text className="font-poppins-semibold text-[17px] text-white">
-                  Sign In
+                  {submitting ? "Sending code…" : "Sign In"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -136,55 +180,7 @@ export default function SignInScreen() {
             </View>
 
             {/* Social Auth Buttons */}
-            <View className="space-y-3 mb-4">
-              {/* Google */}
-              <TouchableOpacity
-                onPress={handleSocialAuth}
-                activeOpacity={0.8}
-                className="border border-[#E5E7EB] rounded-[20px] py-3.5 px-4 flex-row items-center justify-center bg-white"
-              >
-                <Image
-                  source={images.googleIcon}
-                  style={{ width: 20, height: 20, position: "absolute", left: 20 }}
-                  resizeMode="contain"
-                />
-                <Text className="font-poppins-semibold text-[15px] text-[#0D132B]">
-                  Continue with Google
-                </Text>
-              </TouchableOpacity>
-
-              {/* Facebook */}
-              <TouchableOpacity
-                onPress={handleSocialAuth}
-                activeOpacity={0.8}
-                className="border border-[#E5E7EB] rounded-[20px] py-3.5 px-4 flex-row items-center justify-center bg-white mt-2.5"
-              >
-                <Image
-                  source={images.facebookIcon}
-                  style={{ width: 20, height: 20, position: "absolute", left: 20 }}
-                  resizeMode="contain"
-                />
-                <Text className="font-poppins-semibold text-[15px] text-[#0D132B]">
-                  Continue with Facebook
-                </Text>
-              </TouchableOpacity>
-
-              {/* Apple */}
-              <TouchableOpacity
-                onPress={handleSocialAuth}
-                activeOpacity={0.8}
-                className="border border-[#E5E7EB] rounded-[20px] py-3.5 px-4 flex-row items-center justify-center bg-white mt-2.5"
-              >
-                <Image
-                  source={images.appleIcon}
-                  style={{ width: 20, height: 20, position: "absolute", left: 20 }}
-                  resizeMode="contain"
-                />
-                <Text className="font-poppins-semibold text-[15px] text-[#0D132B]">
-                  Continue with Apple
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <SocialAuthButtons />
 
             {/* Bottom Navigation Link */}
             <View className="flex-row items-center justify-center pt-2">
@@ -209,6 +205,8 @@ export default function SignInScreen() {
         visible={verificationModalVisible}
         onClose={() => setVerificationModalVisible(false)}
         email={email}
+        onVerify={handleVerify}
+        onResend={startEmailCode}
       />
     </SafeAreaView>
   );

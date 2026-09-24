@@ -492,6 +492,35 @@ Use:
 
 ---
 
+## Mobile Platform Rules
+
+These apply to all code under `src/app/**` and `components/**`.
+
+- **Expo SDK 57 + Expo Router.** File-based routes live in `src/app/` only. Layouts via `_layout.tsx`. Route groups use `(parens)`.
+- **NativeWind v5 only** for styling — Tailwind classes directly on `View`, `Text`, `Pressable`. No `StyleSheet` for new code except the documented Style Exception cases above.
+- **For any UI change**, use the `lingua-feature` skill and follow the UI Implementation Rules and Styling Rules in this file.
+- **Screen titles are centred by default.** Native Stack/Drawer headers set `headerTitleAlign: "center"`; custom screen headers centre the title with a balancing spacer opposite the leading control. Do this for every new screen without being asked.
+- **Images** use `expo-image` (installed — caching, blurhash). Import them through `constants/images.ts` per the Image Rule.
+- **Online-first only** for new features. No per-feature mutation queues, no offline persisted stores. Persist only local UI/progress state (selected language, XP, completed lessons) via Zustand + AsyncStorage.
+- **Long lists** (> ~20 items) should use `FlatList` with proper `keyExtractor`. `FlashList` (`@shopify/flash-list`) is a better option but is **not installed** — recommend and ask before adding.
+- **Icons:** `lucide-react-native` is **not installed** — recommend and ask before adding; otherwise use existing image assets.
+
+---
+
+## Safety & Secrets Rules
+
+The intent of the source rules (from a production backend) is kept only where it has a real surface in this mobile app. There is no database, backend, or migrations in this version — schema/migration rules do not apply here.
+
+- **Never hardcode secrets** — tokens, API keys, client secrets, connection strings. Never commit one. Secrets belong on a backend/serverless layer, not the mobile bundle (see the AI / Stream / Vision Agent Rules).
+- **Secret storage:** never put secrets (e.g. refresh tokens) in `AsyncStorage` — it is for non-secret prefs and local progress only. When auth/secret storage is needed, use `expo-secure-store` (**not installed** — recommend and ask before adding).
+- **Never log secrets or PII.** No `console.log(user)`, tokens, passwords, or full request/response bodies.
+- **No stray `console.log` / `debugger`** in shipped code paths. Strip debugging before opening a PR.
+- **Validate external input at the boundary.** Guard API/webhook responses and untrusted data before use — don't trust remote shapes. `zod` is a good fit if validation grows (**not installed** — recommend and ask before adding).
+- **Don't weaken auth.** Once Clerk lands, protect gated routes with it and never ship a persistent auth-bypass switch.
+- **Code review before PR.** Run the `expo-reviewer` agent on the diff and resolve blocking findings before opening a PR.
+
+---
+
 ## Final Reminder
 
 Before every feature implementation:

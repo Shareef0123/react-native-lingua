@@ -1,6 +1,7 @@
 import LanguageCard from "@/components/LanguageCard";
 import { images } from "@/constants/images";
 import { getLanguages } from "@/data/languages";
+import { useLanguageStore } from "@/store/language";
 import type { Language } from "@/types/learning";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -17,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LanguageSelectionScreen() {
   const router = useRouter();
+  const setLanguage = useLanguageStore((s) => s.setLanguage);
   const allLanguages = useMemo(() => getLanguages(), []);
 
   const [selectedId, setSelectedId] = useState<string>(allLanguages[0]?.id);
@@ -45,9 +47,10 @@ export default function LanguageSelectionScreen() {
   };
 
   const handleConfirm = () => {
-    // TODO: persist the chosen language with Zustand (next feature).
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
+    if (!selectedLanguage) return;
+    // Persist the chosen language, then head to the home route.
+    setLanguage(selectedLanguage);
+    router.replace("/home");
   };
 
   return (

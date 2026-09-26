@@ -64,7 +64,7 @@ export const UNITS: Unit[] = [
     description: 'Say hello, introduce yourself, and ask simple everyday questions.',
     color: '#FFC800',
     icon: 'hand-wave',
-    totalLessons: 2,
+    totalLessons: 3,
   },
   {
     id: 'de-unit-2',
@@ -74,7 +74,7 @@ export const UNITS: Unit[] = [
     description: 'Talk about your routine, hobbies, and simple daily activities.',
     color: '#58CC02',
     icon: 'sun',
-    totalLessons: 1,
+    totalLessons: 3,
   },
 
   // Japanese Units
@@ -86,7 +86,7 @@ export const UNITS: Unit[] = [
     description: 'Say hello, express gratitude, and learn basic Japanese greetings.',
     color: '#FF4B4B',
     icon: 'sparkles',
-    totalLessons: 2,
+    totalLessons: 3,
   },
   {
     id: 'ja-unit-2',
@@ -96,7 +96,7 @@ export const UNITS: Unit[] = [
     description: 'Learn polite responses, travel phrases, and daily vocabulary.',
     color: '#1CB0F6',
     icon: 'chat-bubble',
-    totalLessons: 1,
+    totalLessons: 3,
   },
 
   // Italian Units
@@ -108,7 +108,31 @@ export const UNITS: Unit[] = [
     description: 'Learn Italian greetings and key phrases for daily life.',
     color: '#2B70C9',
     icon: 'hand-wave',
-    totalLessons: 2,
+    totalLessons: 6,
+  },
+
+  // Korean Units
+  {
+    id: 'kr-unit-1',
+    languageId: 'kr',
+    order: 1,
+    title: 'Hangul & First Words',
+    description: 'Learn essential Korean greetings, polite phrases, and everyday words.',
+    color: '#FF4B4B',
+    icon: 'hand-wave',
+    totalLessons: 5,
+  },
+
+  // Chinese Units
+  {
+    id: 'zh-unit-1',
+    languageId: 'zh',
+    order: 1,
+    title: 'Pinyin & Essentials',
+    description: 'Master Mandarin greetings, tones, and core everyday vocabulary.',
+    color: '#FF0000',
+    icon: 'hand-wave',
+    totalLessons: 5,
   },
 ];
 

@@ -1,50 +1,53 @@
-// Expo Router API route (server-side). Creates (or fetches) the audio call for a
-// lesson with the signed-in Clerk user as creator + member. The lesson is stored
-// as call metadata so the session is tied to the selected lesson/language.
-import { AuthError, getStreamServer, requireClerkUser } from "@/lib/server/stream";
-
-// A plain 1:1 audio session — we use the "default" call type and simply never
-// publish video on the client (audio-only experience).
-const CALL_TYPE = "default";
-
-// Stream call ids allow letters, numbers, "_" and "-". Sanitize defensively.
-function sanitizeId(value: string) {
-  return value.replace(/[^a-zA-Z0-9_-]/g, "-");
-}
+// Expo Router API route (server-side). Creates (or fetches) the audio-room call
+// for a lesson with the signed-in Clerk user as creator + admin member. The full
+// lesson content is stored as call custom data so the AI teacher (Vision Agent)
+// can read it on join. The call is taken live so admins can publish audio.
+import {
+  AuthError,
+  getStreamServer,
+  requireClerkUser,
+} from "@/lib/server/stream";
+import {
+  buildLessonCallCustom,
+  LESSON_CALL_TYPE,
+  lessonCallId,
+} from "@/lib/server/lessonCallData";
 
 export async function POST(request: Request) {
   try {
     const user = await requireClerkUser(request);
     const body = (await request.json().catch(() => ({}))) as {
       lessonId?: string;
-      languageId?: string;
-      lessonTitle?: string;
     };
     if (!body.lessonId) {
       return Response.json({ error: "lessonId is required" }, { status: 400 });
     }
 
+    const custom = buildLessonCallCustom(body.lessonId);
+    if (!custom) {
+      return Response.json({ error: "Unknown lessonId" }, { status: 404 });
+    }
+
     const { client } = getStreamServer();
+    const callId = lessonCallId(body.lessonId, user.userId);
+    const call = client.video.call(LESSON_CALL_TYPE, callId);
 
-    // Deterministic per (lesson, user) so re-entering the lesson resumes the
-    // same call instead of spawning a new one each time.
-    const callId = sanitizeId(`lesson-${body.lessonId}-${user.userId}`);
-    const call = client.video.call(CALL_TYPE, callId);
-
+    // Creator is an admin member so they can publish audio (audio_room gates
+    // publishing to admins/hosts). The AI teacher is added as an admin member by
+    // the agent-session route when it starts the agent.
     await call.getOrCreate({
       data: {
         created_by_id: user.userId,
-        members: [{ user_id: user.userId }],
-        custom: {
-          kind: "ai-teacher-audio",
-          lessonId: body.lessonId,
-          languageId: body.languageId ?? null,
-          lessonTitle: body.lessonTitle ?? null,
-        },
+        members: [{ user_id: user.userId, role: "admin" }],
+        custom,
       },
     });
 
-    return Response.json({ callId, callType: CALL_TYPE });
+    // audio_room starts in backstage; take it live so admins can publish audio.
+    // Idempotent in practice — ignore "already live" on re-entry.
+    await call.goLive({}).catch(() => {});
+
+    return Response.json({ callId, callType: LESSON_CALL_TYPE });
   } catch (err) {
     if (err instanceof AuthError) {
       return Response.json({ error: err.message }, { status: 401 });

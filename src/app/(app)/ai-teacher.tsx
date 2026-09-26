@@ -10,6 +10,7 @@ import { images } from "@/constants/images";
 import { getLanguageById } from "@/data/languages";
 import { getLessonById, getLessonsForLanguage } from "@/data/lessons";
 import { useLessonCall } from "@/hooks/useLessonCall";
+import { useTeacherAgent } from "@/hooks/useTeacherAgent";
 import { useLanguageStore } from "@/store/language";
 import { useUser } from "@clerk/clerk-expo";
 import { Image as ExpoImage } from "expo-image";
@@ -87,10 +88,18 @@ export default function AiTeacherScreen() {
   const [subtitlesOn, setSubtitlesOn] = useState(true);
 
   // Real Stream audio call for this lesson: live status + mute/unmute + end.
-  const { status, muted, toggleMute, endCall, retry } = useLessonCall({
+  const { status, muted, handle, toggleMute, endCall, retry } = useLessonCall({
     lessonId: lesson?.id,
-    languageId: lesson?.languageId,
-    lessonTitle: lesson?.title,
+  });
+
+  // AI teacher (Vision Agent) joins the same call once the learner is live.
+  const {
+    status: agentStatus,
+    stop: stopAgent,
+  } = useTeacherAgent({
+    lessonId: lesson?.id,
+    handle,
+    enabled: status === "joined",
   });
 
   const { user } = useUser();
@@ -101,8 +110,10 @@ export default function AiTeacherScreen() {
     else router.navigate("/learn");
   };
 
-  // End Call leaves the Stream call, then navigates out of the lesson.
+  // End Call stops the AI teacher, leaves the Stream call, then navigates out.
+  // (The screen also stops the agent on unmount as a safety net.)
   const leaveAndExit = async () => {
+    await stopAgent();
     await endCall();
     exit();
   };
@@ -143,6 +154,25 @@ export default function AiTeacherScreen() {
         : status === "ended"
           ? "bg-[#9CA3AF]"
           : "bg-warning";
+
+  // AI teacher (Vision Agent) connection status — its own idle/connecting/
+  // connected/failed indicator, separate from the learner's call status.
+  const agentLabel =
+    agentStatus === "connected"
+      ? "AI teacher connected"
+      : agentStatus === "connecting"
+        ? "AI teacher connecting…"
+        : agentStatus === "failed"
+          ? "AI teacher unavailable"
+          : "AI teacher idle";
+  const agentDotColor =
+    agentStatus === "connected"
+      ? "#21C16B"
+      : agentStatus === "connecting"
+        ? "#F5A623"
+        : agentStatus === "failed"
+          ? "#FF4D4F"
+          : "#9CA3AF";
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }} edges={["top"]}>
@@ -199,6 +229,17 @@ export default function AiTeacherScreen() {
             className="w-[80%] h-[80%]"
             contentFit="contain"
           />
+        </View>
+
+        {/* AI teacher connection status — idle / connecting / connected / failed. */}
+        <View className="absolute top-3 self-center flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
+          <View
+            className="w-2 h-2 rounded-full mr-1.5"
+            style={{ backgroundColor: agentDotColor }}
+          />
+          <Text className="font-poppins-medium text-[12px] text-white">
+            {agentLabel}
+          </Text>
         </View>
 
         {/* Lesson context: language, title, and goal from the hardcoded data. */}

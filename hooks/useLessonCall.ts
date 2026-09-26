@@ -21,8 +21,12 @@ export type LessonCallStatus =
 
 type Params = {
   lessonId?: string;
-  languageId?: string;
-  lessonTitle?: string;
+};
+
+export type LessonCallHandle = {
+  callId: string;
+  callType: string;
+  call: Call;
 };
 
 function mapCallingState(cs: CallingState): LessonCallStatus {
@@ -40,7 +44,7 @@ function mapCallingState(cs: CallingState): LessonCallStatus {
   }
 }
 
-export function useLessonCall({ lessonId, languageId, lessonTitle }: Params) {
+export function useLessonCall({ lessonId }: Params) {
   const client = useStreamVideoClient();
   const { getToken } = useAuth();
 
@@ -55,6 +59,9 @@ export function useLessonCall({ lessonId, languageId, lessonTitle }: Params) {
   const [muted, setMuted] = useState(false);
   const [error, setError] = useState<string>();
   const [attempt, setAttempt] = useState(0);
+  // Once the call is created + joined, expose a handle so the AI teacher agent
+  // hook can target the same call (and watch it for the agent participant).
+  const [handle, setHandle] = useState<LessonCallHandle | null>(null);
   const callRef = useRef<Call | null>(null);
 
   useEffect(() => {
@@ -70,8 +77,6 @@ export function useLessonCall({ lessonId, languageId, lessonTitle }: Params) {
 
         const { callId, callType } = await fetchLessonCall(getTokenRef.current, {
           lessonId,
-          languageId: languageId ?? "",
-          lessonTitle,
         });
         if (cancelled) return;
 
@@ -79,6 +84,7 @@ export function useLessonCall({ lessonId, languageId, lessonTitle }: Params) {
         // the SDK may already hold for this (type, id) pair.
         call = client.call(callType, callId, { reuseInstance: true });
         callRef.current = call;
+        setHandle({ callId, callType, call });
         // Keep the call alive through brief network drops instead of ending it.
         call.setDisconnectionTimeout(60);
 
@@ -117,8 +123,9 @@ export function useLessonCall({ lessonId, languageId, lessonTitle }: Params) {
         c.leave().catch(() => {});
       }
       callRef.current = null;
+      setHandle(null);
     };
-  }, [client, lessonId, languageId, lessonTitle, attempt]);
+  }, [client, lessonId, attempt]);
 
   const toggleMute = useCallback(async () => {
     await callRef.current?.microphone.toggle().catch(() => {});
@@ -139,6 +146,8 @@ export function useLessonCall({ lessonId, languageId, lessonTitle }: Params) {
     muted,
     error,
     connected: status === "joined",
+    // The joined call + its ids, for the AI teacher agent hook. Null until joined.
+    handle,
     toggleMute,
     endCall,
     retry,

@@ -8,6 +8,24 @@ const streamApiKey = process.env.EXPO_STREAM_API_KEY;
 const streamApiSecret = process.env.EXPO_STREAM_API_SECRET;
 const clerkSecretKey = process.env.CLERK_SECRET_KEY;
 
+// The Vision Agent HTTP server (vision-agents `serve`). Server-side only — the
+// mobile app never talks to it directly; the Expo API routes proxy to it so the
+// URL (and any shared token) stays out of the client bundle.
+const visionAgentUrl = process.env.VISION_AGENT_URL ?? "http://localhost:8000";
+const visionAgentToken = process.env.VISION_AGENT_TOKEN;
+
+// URL + optional bearer token for reaching the Vision Agent server.
+export function getVisionAgentConfig() {
+  return {
+    baseUrl: visionAgentUrl.replace(/\/$/, ""),
+    // Optional shared secret — sent as `Authorization: Bearer …` when the agent
+    // server is configured to require it (ServeOptions.can_start_session).
+    authHeader: visionAgentToken
+      ? { Authorization: `Bearer ${visionAgentToken}` }
+      : undefined,
+  };
+}
+
 // Thrown for auth failures so routes can map them to HTTP 401.
 export class AuthError extends Error {}
 

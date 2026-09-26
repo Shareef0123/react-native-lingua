@@ -64,13 +64,43 @@ export function fetchStreamSession(getToken: GetToken): Promise<StreamSession> {
 export type LessonCall = { callId: string; callType: string };
 
 // Create (or fetch) the audio call for a lesson, server-side, with the
-// signed-in user as creator + member and the lesson stored as call metadata.
+// signed-in user as creator + admin member. The full lesson content is packed
+// into the call's custom data by the server from the lesson id alone.
 export function fetchLessonCall(
   getToken: GetToken,
-  params: { lessonId: string; languageId: string; lessonTitle?: string }
+  params: { lessonId: string }
 ): Promise<LessonCall> {
   return authedFetch<LessonCall>("/api/stream-call", getToken, {
     method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export type TeacherAgentSession = {
+  sessionId: string | null;
+  callId: string;
+  callType: string;
+};
+
+// Start the AI teacher (Vision Agent) for a lesson: the server grants the agent
+// permission to publish and asks the Vision Agent server to join the call.
+export function startTeacherAgent(
+  getToken: GetToken,
+  params: { lessonId: string }
+): Promise<TeacherAgentSession> {
+  return authedFetch<TeacherAgentSession>("/api/agent-session", getToken, {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+// Stop the AI teacher session so the agent leaves the call and frees resources.
+export function stopTeacherAgent(
+  getToken: GetToken,
+  params: { lessonId: string; sessionId: string }
+): Promise<{ ok: boolean }> {
+  return authedFetch<{ ok: boolean }>("/api/agent-session", getToken, {
+    method: "DELETE",
     body: JSON.stringify(params),
   });
 }

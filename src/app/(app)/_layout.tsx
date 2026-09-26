@@ -1,3 +1,4 @@
+import StreamVideoProvider from "@/components/StreamVideoProvider";
 import TabBar from "@/components/TabBar";
 import { useLanguageStore } from "@/store/language";
 import { useAuth } from "@clerk/clerk-expo";
@@ -18,14 +19,18 @@ export default function AppLayout() {
   if (!selectedLanguage) return <Redirect href="/language-selection" />;
 
   // Bottom tab navigation with a custom animated tab bar. Screen order here
-  // controls the order of the tabs in the bar.
+  // controls the order of the tabs in the bar. StreamVideoProvider connects the
+  // signed-in user to Stream once, above the tabs, so the AI Teacher call
+  // survives tab switches.
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
-      <Tabs.Screen name="home" />
-      <Tabs.Screen name="learn" />
-      <Tabs.Screen name="ai-teacher" />
-      <Tabs.Screen name="chat" />
-      <Tabs.Screen name="profile" />
-    </Tabs>
+    <StreamVideoProvider>
+      <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
+        <Tabs.Screen name="home" />
+        <Tabs.Screen name="learn" />
+        <Tabs.Screen name="ai-teacher" />
+        <Tabs.Screen name="chat" />
+        <Tabs.Screen name="profile" />
+      </Tabs>
+    </StreamVideoProvider>
   );
 }

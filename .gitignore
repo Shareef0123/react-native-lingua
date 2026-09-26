@@ -46,3 +46,4 @@ example
 my-expo-app/
 
 .env*
+!.env.example

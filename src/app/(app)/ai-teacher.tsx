@@ -9,12 +9,14 @@ import VideoIcon from "@/assets/icons/video.svg";
 import { images } from "@/constants/images";
 import { getLanguageById } from "@/data/languages";
 import { getLessonById, getLessonsForLanguage } from "@/data/lessons";
+import { useLessonCall } from "@/hooks/useLessonCall";
 import { useLanguageStore } from "@/store/language";
+import { useUser } from "@clerk/clerk-expo";
 import { Image as ExpoImage } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { styled } from "nativewind";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -81,20 +83,28 @@ export default function AiTeacherScreen() {
   }, [lesson]);
 
   const [lineIndex, setLineIndex] = useState(0);
-  const [micOn, setMicOn] = useState(true);
   const [cameraOn, setCameraOn] = useState(true);
   const [subtitlesOn, setSubtitlesOn] = useState(true);
-  const [connected, setConnected] = useState(false);
 
-  // Simulate the audio session connecting, then going live (session status).
-  useEffect(() => {
-    const timer = setTimeout(() => setConnected(true), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Real Stream audio call for this lesson: live status + mute/unmute + end.
+  const { status, muted, toggleMute, endCall, retry } = useLessonCall({
+    lessonId: lesson?.id,
+    languageId: lesson?.languageId,
+    lessonTitle: lesson?.title,
+  });
+
+  const { user } = useUser();
+  const displayName = user?.firstName ?? user?.username ?? "You";
 
   const exit = () => {
     if (router.canGoBack()) router.back();
     else router.navigate("/learn");
+  };
+
+  // End Call leaves the Stream call, then navigates out of the lesson.
+  const leaveAndExit = async () => {
+    await endCall();
+    exit();
   };
 
   if (!lesson || !language) {
@@ -114,6 +124,26 @@ export default function AiTeacherScreen() {
 
   const line = lines[Math.min(lineIndex, lines.length - 1)];
 
+  // Map the call status to the header's session indicator.
+  const statusLabel =
+    status === "joined"
+      ? "Online"
+      : status === "connecting"
+        ? "Connecting…"
+        : status === "loading"
+          ? "Starting lesson…"
+          : status === "ended"
+            ? "Call ended"
+            : "Connection failed";
+  const statusDotClass =
+    status === "joined"
+      ? "bg-lingua-green"
+      : status === "error"
+        ? "bg-error"
+        : status === "ended"
+          ? "bg-[#9CA3AF]"
+          : "bg-warning";
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }} edges={["top"]}>
       {/* Header: back, title + live session status, session chips. */}
@@ -130,16 +160,17 @@ export default function AiTeacherScreen() {
           <Text className="font-poppins-bold text-[20px] text-[#0D132B]">
             AI Teacher
           </Text>
-          <View className="flex-row items-center mt-0.5">
-            <View
-              className={`w-2 h-2 rounded-full mr-1.5 ${
-                connected ? "bg-lingua-green" : "bg-warning"
-              }`}
-            />
+          <TouchableOpacity
+            activeOpacity={status === "error" || status === "ended" ? 0.6 : 1}
+            onPress={status === "error" || status === "ended" ? retry : undefined}
+            className="flex-row items-center mt-0.5"
+          >
+            <View className={`w-2 h-2 rounded-full mr-1.5 ${statusDotClass}`} />
             <Text className="font-poppins-medium text-[13px] text-[#9CA3AF]">
-              {connected ? "Online" : "Connecting…"}
+              {statusLabel}
+              {status === "error" || status === "ended" ? " · Tap to retry" : ""}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View className="flex-row items-center">
@@ -205,9 +236,20 @@ export default function AiTeacherScreen() {
         {cameraOn ? (
           <View className="absolute top-3 right-3 w-[86px] h-[112px] rounded-2xl overflow-hidden bg-[#2A2F45] items-center justify-center border-2 border-white/70">
             <ProfileIcon width={30} height={30} color="#FFFFFF" />
-            <Text className="font-poppins-medium text-[11px] text-white/90 mt-1">
-              You
+            <Text
+              numberOfLines={1}
+              className="font-poppins-medium text-[11px] text-white/90 mt-1 px-1"
+            >
+              {displayName}
             </Text>
+            {muted ? (
+              <View className="absolute bottom-1.5 flex-row items-center rounded-full bg-black/55 px-2 py-0.5">
+                <MicIcon width={10} height={10} color="#FF4D4F" />
+                <Text className="font-poppins-medium text-[9px] text-white ml-1">
+                  Muted
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
 
@@ -252,11 +294,11 @@ export default function AiTeacherScreen() {
           <VideoIcon width={26} height={26} color={cameraOn ? "#0D132B" : "#9CA3AF"} />
         </ControlButton>
         <ControlButton
-          label="Mic"
-          active={micOn}
-          onPress={() => setMicOn((v) => !v)}
+          label={muted ? "Unmute" : "Mic"}
+          active={!muted}
+          onPress={toggleMute}
         >
-          <MicIcon width={26} height={26} color={micOn ? "#0D132B" : "#9CA3AF"} />
+          <MicIcon width={26} height={26} color={!muted ? "#0D132B" : "#9CA3AF"} />
         </ControlButton>
         <ControlButton
           label="Subtitles"
@@ -269,7 +311,7 @@ export default function AiTeacherScreen() {
             color={subtitlesOn ? "#0D132B" : "#9CA3AF"}
           />
         </ControlButton>
-        <ControlButton label="End Call" danger onPress={exit}>
+        <ControlButton label="End Call" danger onPress={leaveAndExit}>
           <PhoneEndIcon width={26} height={26} color="#FFFFFF" />
         </ControlButton>
       </View>
